@@ -35,4 +35,4 @@ async function databaseQuery(col) {
 
 
 
-module.exports = { databaseQuery }
+module.exports = { databaseConnection ,databaseQuery }
