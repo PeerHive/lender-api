@@ -1,0 +1,53 @@
+const database = require('./databases');
+
+//User Model Methods
+
+async function userConnection() {
+    const { client, db } = await database.databaseConnection();
+    try {
+        const collection = db.collection('users');
+        return {client, collection};
+    } catch (error) {
+        console.error('Error connecting to MongoDB:', error)
+    }
+}
+
+const User = {
+    //Function to create a new user
+    create: async (user) => {
+        const { client, collection } = await userConnection();
+        try {
+            const result = await collection.insertOne(user);
+            return result.insertId;
+        } finally {
+            client.close();
+            console.log('Disconnected from MongoDB');
+        }
+    },
+
+    // Function to find a user by email
+    findByEmail: async (email) => {
+        const { client, collection } = await userConnection();
+        email = email['email']
+        try {
+            const user = await collection.findOne( {'email': email } );
+            return user;
+        } finally {
+            client.close();
+            console.log('Disconnected from MongoDB');
+        }
+    },
+
+    findById: async (id) => {
+        const { client, collection } = await userConnection();
+        try {
+            const user = await collection.findOne({ _id: new ObjectID(id) });
+            return user;
+          } finally {
+            client.close();
+            console.log('Disconnected from MongoDB');
+        }
+    }
+}
+
+module.exports = User ;
