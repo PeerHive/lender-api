@@ -1,7 +1,8 @@
 const express = require('express');
 const BodyParser = require('body-parser');
-const database = require('./models/databases')
-const authRoutes = require('./routes/authRoutes')
+const database = require('./models/databases');
+const authRoutes = require('./routes/authRoutes');
+const mainpageRoute = require('./routes/mainpageRoutes');
 
 const app = express();
 const port = 5000;
@@ -9,6 +10,7 @@ const port = 5000;
 app.use(BodyParser.json());
 app.use(BodyParser.urlencoded({ extended: true }));
 app.use('/auth', authRoutes);
+app.use('/main', mainpageRoute);
 var collection;
 
 app.listen(port, (error) => {
@@ -17,22 +19,11 @@ app.listen(port, (error) => {
 });
 
 app.get('/hello_world', (req,res)=>{
-    res.send('Hello World');
+    res.send('Hello Worl, welcome to PeerHive app');
 });
-
 
 app.get("/SmartContract", (request, response) => {
     database.databaseQuery('SmartContract')
-    .then((result) => {
-        response.send(result);
-    })
-    .catch((error) => {
-        return response.status(500).send(error);
-    });
-});
-
-app.get("/loanpool", (request, response) => {
-    database.databaseQuery('loanPool')
     .then((result) => {
         response.send(result);
     })
