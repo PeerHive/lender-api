@@ -21,7 +21,6 @@ const User = {
             return result.insertId;
         } finally {
             client.close();
-            console.log('Disconnected from MongoDB');
         }
     },
 
@@ -34,7 +33,6 @@ const User = {
             return user;
         } finally {
             client.close();
-            console.log('Disconnected from MongoDB');
         }
     },
 
@@ -45,7 +43,6 @@ const User = {
             return user;
           } finally {
             client.close();
-            console.log('Disconnected from MongoDB');
         }
     }
 }
