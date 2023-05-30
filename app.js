@@ -19,15 +19,6 @@ app.listen(port, (error) => {
 });
 
 app.get('/hello_world', (req,res)=>{
-    res.send('Hello Worl, welcome to PeerHive app');
+    res.send('Hello World, welcome to PeerHive app');
 });
 
-app.get("/SmartContract", (request, response) => {
-    database.databaseQuery('SmartContract')
-    .then((result) => {
-        response.send(result);
-    })
-    .catch((error) => {
-        return response.status(500).send(error);
-    });
-});

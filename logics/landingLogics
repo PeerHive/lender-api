@@ -1,0 +1,144 @@
+const database = require('../models/databases');
+
+async function connectToCollection(collectionName) {
+    const { client, db } = await database.databaseConnection();
+    const collection = db.collection(collectionName);
+    return { client, collection };
+}
+
+function calculateMonths(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+  
+    // Calculate the difference in months
+    const yearsDiff = end.getFullYear() - start.getFullYear();
+    const monthsDiff = end.getMonth() - start.getMonth();
+    const totalMonths = yearsDiff * 12 + monthsDiff;
+  
+    return totalMonths;
+  }
+
+const Mainpage = {
+    valueLocked: async () => {
+        const { client, collection } = await connectToCollection('loanPool');
+        try {
+            const query = [
+                {
+                    $match: {
+                        $or: [
+                            { Status: 'Active' },
+                            { Status: 'Completed' }
+                        ]
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        activeAmounts: { $sum: '$loanAmount' },
+                        avgInterestRate: { $avg: '$interestRate.interestRate' }
+                    }
+                }
+            ];
+            const header = await collection.aggregate(query).toArray();
+            delete header[0]['_id'];
+            return header[0];
+        } catch (error) {
+            console.error('Error in aggregation:', error);
+        } finally {
+            client.close();
+        }
+    },
+
+    loans: async () => {
+        const { client, collection } = await connectToCollection('loanPool');
+        try {
+            let loanPool = await collection.find({}).project({
+                _id: 0,
+                loanAmount: 1,
+                balanceAmount: 1,
+                interestRate: 1,
+                denomination: 1,
+                startDate: 1,
+                endDate: 1, 
+                Status: 1,
+                loanType: 1,
+                paymentFreq: 1,
+                repaymentStructure:1, 
+                loanName: 1
+            }).toArray();
+            return loanPool;
+        } catch (error) {
+            console.error('Error in loans listing:', error);
+        } finally {
+            client.close();
+        }
+    },
+
+    pool: async (poolId) => {
+        const { client, collection } = await connectToCollection('loanPool');
+        poolId = { loanPoolId: poolId };
+        try {
+            let loanPool = await collection.find(poolId).project({
+                _id: 0,
+                loanAmount: 1,
+                balanceAmount: 1,
+                interestRate: 1,
+                denomination: 1,
+                startDate: 1,
+                endDate: 1, 
+                Status: 1,
+                borrower: 1,
+                loanType: 1,
+                paymentFreq: 1,
+                repaymentStructure:1, 
+                loanName: 1
+            }).toArray();
+            loanPool = loanPool[0];
+            loanPool['duration'] = calculateMonths(loanPool.startDate, loanPool.endDate);
+            return loanPool;
+        } catch (error) {
+            console.error('Error in obtaining loan data:', error);
+        } finally {
+            await client.close();
+        }
+    },
+
+    schedule: async (poolId) => {
+        const { client, collection } = await connectToCollection('paymentSchedule');
+        poolId = { loanPoolId: poolId };
+        try {
+            let schedule = await collection.find(poolId).project({
+                schedule: 1,
+                _id: 0
+            }).toArray();
+            schedule = schedule[0];
+            return schedule;
+        } catch (error) {
+            console.error('Error in obtaining loan data:', error);
+        } finally {
+            await client.close();
+        }
+    },
+
+    borrower: async (borrowerId) => {
+        const { client, collection } = await connectToCollection('borrowers');
+        poolId = { borrowerId: borrowerId };
+        try {
+            let borrower = await collection.find(poolId).project({
+                name: 1,
+                placeOfIncorporation: 1,
+                kyc: 1, 
+                wallets: 1,
+                _id: 0
+            }).toArray();
+            borrower = borrower[0];
+            return borrower;
+        } catch (error) {
+            console.error('Error in obtaining loan data:', error);
+        } finally {
+            await client.close();
+        }
+    }
+};
+
+module.exports = Mainpage;
