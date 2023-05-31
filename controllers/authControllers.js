@@ -4,6 +4,7 @@ const validator = require('validator');
 const User = require('../logics/userLogics');
 
 // User registration
+// Process Req: JSON Body
 const registerUser = async (req, res) => {
   try {
     // Extract user data from request body
@@ -34,7 +35,8 @@ const registerUser = async (req, res) => {
       password: hashedPassword,
       role: 'basic'
     };
-
+    
+    // Register new user (Depracted 31 May 2023, will be replace with credential and passwordless)
     const registeredId = await User.create(newUser);
     console.log(registeredId);
     res.status(201).json({ message: 'User registered successfully' });
@@ -46,6 +48,7 @@ const registerUser = async (req, res) => {
 };
 
 // User login
+// Process Req: JSON Body
 const loginUser = async (req, res) => {
   try {
     // Extract user data from request body
