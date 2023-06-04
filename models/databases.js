@@ -4,28 +4,39 @@ const { MongoClient } = require('mongodb');
 const CONNECTION_URL = process.env.CONNECTION_URL;
 const DATABASE_NAME = 'PeerHive';
 
+
+// Initialized Database connection to MongoDB
+// Return: Client: client handler
+//         database: return the database handler
 async function databaseConnection() {
     const client = new MongoClient(CONNECTION_URL, { useNewUrlParser: true });
     try {
-        await client.connect();
 
-        const db = client.db(DATABASE_NAME);
-        console.log('Connected to ' + DATABASE_NAME);
+        await client.connect();
+        const db = client.db(DATABASE_NAME); // This will connect to Database
+
         return {client, db};
+
     } catch (error) {
         console.error('Error connecting to MongoDB:', error);
     }
 }
 
-
+// Initialized database query
+// Param col: str, name of the collection 
+// Return: Collection: array, return the collection of the collection name
 async function databaseQuery(col) {
     const {client, db} = await databaseConnection();
-    try {        
+    try {
+
         const collection = db.collection(col);
         const docs = await collection.find({}).toArray();
+
         return docs
+
     } catch (error) {
-        console.error('Error performing database operations:', error); 
+        console.error('Error performing database operations:', error);
+
     } finally {
         // Close the MongoDB connection when done
         await client.close();
