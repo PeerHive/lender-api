@@ -1,7 +1,7 @@
 const express = require('express');
 const BodyParser = require('body-parser');
+const cors = require('cors')
 const database = require('./models/databases');
-const authRoutes = require('./routes/authRoutes');
 const mainpageRoute = require('./routes/mainpageRoutes');
 
 const app = express();
@@ -9,10 +9,10 @@ const port = 5000; // Open port 5000 from the localhost
 
 // JSON Encoding allowing JSON Body to be parsed
 app.use(BodyParser.json());
+app.use(cors())
 app.use(BodyParser.urlencoded({ extended: true }));
 
 
-app.use('/auth', authRoutes); // Authentication sub route API
 app.use('/main', mainpageRoute); // Main sub route API 
 
 // Listening and initializing of API at port 5000
