@@ -11,14 +11,20 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@clerk/clerk-sdk-node": "^4.10.13",
     "alchemy-sdk": "^2.9.0",
     "bcrypt": "^5.1.0",
     "body-parser": "^1.20.2",
+    "coingecko-api": "^1.0.10",
+    "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.0",
     "mongo": "^0.1.0",
     "mongodb": "^5.5.0",
+    "next-auth": "^4.22.1",
+    "passport": "^0.6.0",
+    "underscore": "^1.13.6",
     "validator": "^13.9.0"
   },
   "devDependencies": {

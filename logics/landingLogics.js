@@ -29,6 +29,25 @@ function calculateMonths(startDate, endDate) {
 
 // Initialize the Mainpage class
 const Mainpage = {
+    // Find the loan pool with ID
+    find: async(poolId) => {
+        const { client, collection } = await connectToCollection('loanPool');
+        const query = {loanPoolId: poolId};
+        try {
+            const loanPool = await collection.findOne(query);
+            if (!loanPool){
+                return false;
+
+            } else {
+                return true;
+                
+            }
+        } finally {
+            client.close();
+        }
+    },
+    
+    
     // The function for header of the overview
     // Return: JSON, header with sum of pool, average interest, count number of pool (Active and Completed)
     valueLocked: async () => {
