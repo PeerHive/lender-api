@@ -8,8 +8,7 @@ const landingAPI = async(req, res) => {
         console.log('Running Landing API Operations')
         // Extract all database lists
         const mainPageList = await mainopageDb.valueLocked(); // Get the header of JSON file
-
-        res.status(201).send(mainPageList);
+        res.status(201).json(mainPageList);
     
     } catch (error) {
         console.error('Error in initializing JSON data', error)
@@ -25,24 +24,34 @@ const loanDetails = async(req, res) => {
         console.log('Running Loan Details Operations')
         // Obtain the parameter for the loan pool (must)
         const loanId = req.query.poolId;
-        const loanPool = await mainopageDb.pool(loanId); // Get the loan pool of a specific loanId
-        const schedule = await mainopageDb.schedule(loanId); // Get the loan schedule of a specific loanId
-        const borrower = await mainopageDb.borrower(loanPool.borrower); // Get the borrower's detail based on the borrower detail
-        const completeData = {
-            loanData: loanPool,
-            loanSchedule: schedule
+        if (!loanId){
+            res.status(400).send({ message: 'loanId not provided' });
         }
-        completeData.loanData.borrower = borrower;
+        else {
+            const loanPool = await mainopageDb.find(loanId); // Get the loan pool of a specific loanId
+            if (!loanPool) {
+              res.status(404).send({ message: `Loan with loanId ${loanId} not found` });
+              return;
+            }
+            else {
+                const loanPool = await mainopageDb.pool(loanId); // Get the loan pool of a specific loanId
+                const schedule = await mainopageDb.schedule(loanId); // Get the loan schedule of a specific loanId
+                const borrower = await mainopageDb.borrower(loanPool.borrower); // Get the borrower's detail based on the borrower detail
         
-        res.status(201).send(completeData);
-
-        
-    } catch (error) {
-        console.error('Error in obtaining loan details', error)
-        res.status(500).json({ message: 'Internal server error' });
-    }
-}
-
+                const completeData = {
+                loanData: loanPool,
+                loanSchedule: schedule,
+                };
+      
+                completeData.loanData.borrower = borrower;
+                res.status(200).send(completeData);
+            }
+          }
+        } catch (error) {
+            console.error('Error in obtaining loan details', error);
+            res.status(500).json({ message: 'Internal server error' });
+        }
+    };
 
 module.exports = {
     landingAPI,

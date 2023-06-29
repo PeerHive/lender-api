@@ -3,19 +3,23 @@ const BodyParser = require('body-parser');
 const cors = require('cors')
 const database = require('./models/databases');
 const mainpageRoute = require('./routes/mainpageRoutes');
+const portfolioRoute = require('./routes/portfolioRoutes');
+const auth = require('./middlewares/authMiddleware');
+
 
 const app = express();
-const port = 5000; // Open port 5000 from the localhost
+const port = 5001; // Open port 5001 from the localhost
 
 // JSON Encoding allowing JSON Body to be parsed
 app.use(BodyParser.json());
-app.use(cors())
 app.use(BodyParser.urlencoded({ extended: true }));
+app.use(cors())
 
 
-app.use('/main', mainpageRoute); // Main sub route API 
+app.use('/main', auth.api_auth, mainpageRoute); // Main sub route API 
+app.use('/portfolios', auth.api_auth, portfolioRoute);
 
-// Listening and initializing of API at port 5000
+// Listening and initializing of API at port 5001
 app.listen(port, (error) => {
     if (error) console.log("Error in server setup")
     console.log("Server listening on Port", port);
@@ -26,4 +30,3 @@ app.listen(port, (error) => {
 app.get('/hello_world', (req,res)=>{
     res.send('Hello World, welcome to PeerHive app');
 });
-
