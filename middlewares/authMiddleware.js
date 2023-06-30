@@ -3,9 +3,16 @@ const { MongoClient } = require('mongodb');
 const CONNECTION_URL = process.env.CONNECTION_URL;
 const DATABASE_NAME = 'Auth';
 const jwt = require('jsonwebtoken');
-const API_ENCODING = process.env.API_ENCODING;
+
+const API_ENCODING = process.env.API_ENCODING; // PeerHive internal API encoding
+
 const { sessions } = authPkg;
 
+/*
+SessionId authentication middleware
+verifying the activeness of the sessionId
+Return: Nil
+*/
 const authenticateSessions = async (req, res, next) => {
   sessionId = req.header("session");
   if (!sessionId) {
@@ -21,8 +28,14 @@ const authenticateSessions = async (req, res, next) => {
       res.status(403).send({error: {code: 403, message: "Session Not Authenticated"}});
     }
   }
-}
+};
 
+/*
+PH access api key authentication middleware
+Obtain from repo owner
+verifying the activeness of the API_Key to access PH web api
+Return: Nil
+*/
 const api_auth = async (req, res, next) => {
   const client = new MongoClient(CONNECTION_URL, { useNewUrlParser: true });
   const database = await client.db(DATABASE_NAME);
@@ -43,13 +56,16 @@ const api_auth = async (req, res, next) => {
   }
   catch (error) {
     console.error('Error connecting to MongoDB:', error);
+    res.status(403).send({error: {code: 403, message: "API Not Authenticated"}})
   }
   finally {
     // Close the MongoDB connection when done
     await client.close();
     console.log('Disconnected from MongoDB');
   }
-}
+};
+
+
 module.exports = {
   authenticateSessions,
   api_auth
