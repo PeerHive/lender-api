@@ -84,6 +84,7 @@ const Mainpage = {
                 { 
                     _id: 0,
                     loanAmount: 1,
+                    loanPoolId: 1,
                     balanceAmount: 1,
                     interestRate: 1,
                     denomination: 1,
@@ -128,6 +129,7 @@ const Mainpage = {
             let loanPool = await collection.find(poolId).project({
                 _id: 0,
                 loanAmount: 1,
+                loanPoolId: 1,
                 balanceAmount: 1,
                 interestRate: 1,
                 denomination: 1,
