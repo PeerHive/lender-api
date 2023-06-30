@@ -4,13 +4,17 @@ const mainpageController = require('../controllers/mainpageControllers')
 
 const router = express.Router();
 
-// Route: GET/landing
-// Decription: Mainpage 
-router.get('/landing', mainpageController.landingAPI);
+/* 
+Route: GET/main/overview
+Decription: Mainpage 
+*/
+router.get('/overview', mainpageController.landingAPI);
 
-// Route: GET/pool
-// PARAM: poolId
-// Description: Specific loan pool details
+/*
+Route: GET/main/pool
+PARAM: poolId
+Description: Specific loan pool details
+*/
 router.get('/pool', mainpageController.loanDetails);
 
 module.exports = router;
