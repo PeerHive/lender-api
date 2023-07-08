@@ -68,7 +68,7 @@ const Mainpage = {
                     $group: {
                         _id: null,
                         activeAmounts: { $sum: '$loanAmount' },
-                        avgInterestRate: { $avg: '$interestRate.lendingRate' },
+                        avgInterestRate: { $avg: '$rate.lendingRate' },
                         countPool: { $count: {}}
                     }
                 }
@@ -86,7 +86,7 @@ const Mainpage = {
                     loanAmount: 1,
                     loanPoolId: 1,
                     balanceAmount: 1,
-                    interestRate: 1,
+                    rate: 1,
                     denomination: 1,
                     startDate: 1,
                     endDate: 1, 
@@ -131,7 +131,7 @@ const Mainpage = {
                 loanAmount: 1,
                 loanPoolId: 1,
                 balanceAmount: 1,
-                interestRate: 1,
+                rate: 1,
                 denomination: 1,
                 startDate: 1,
                 endDate: 1, 

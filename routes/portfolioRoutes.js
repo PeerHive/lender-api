@@ -23,4 +23,6 @@ Decription: Mainpage
 */
 router.get('/portfolioTrxn', auth.authenticateSessions, portfolioControllers.portfolioTrxn);
 
+router.post('/joinPool', portfolioControllers.portfolioJoin)
+
 module.exports = router;

@@ -1,7 +1,10 @@
 const { connect } = require('mongo');
-const database = require('../models/databases');
+const moment = require('moment')
 const CoinGecko = require('coingecko-api');
 const _ = require('underscore');
+
+const database = require('../models/databases');
+const User = require('../models/portfolioModels');
 
 const coinGeckoClient = new CoinGecko(); 
 
@@ -65,6 +68,23 @@ async function price(tickers) {
 
 // Initialized the Portfolio Class
 const Portfolio = {
+    // Find the loan pool with ID
+    find: async(emailId) => {
+        const { client, collection } = await connectToCollection('lenders');
+        const query = {email: emailId};
+        try {
+            const loanPool = await collection.findOne(query);
+            if (!loanPool){
+                return false;
+
+            } else {
+                return true;
+                
+            }
+        } finally {
+            client.close();
+        }
+    },
         
     /* 
     Get all the portfolio of a specific user
@@ -110,7 +130,8 @@ const Portfolio = {
                     paymentFreq: 1,
                     repaymentStructure:1,
                     loanName: 1,
-                    loanAmount: 1
+                    loanAmount: 1,
+                    rate: 1
                 }
             ).toArray();
             return details
@@ -137,9 +158,9 @@ const Portfolio = {
                 var portfolio of getPortfolios[0].portfolio) {
                 var details = await Portfolio.portfolioDetails(portfolio.loanPoolId);
                 details = details[0];
-                
+                console.log(details)
                 // Calculate the net rate received by lender
-                details.netRate = (details.interestRate.lendingRate - details.interestRate.interestRate).toFixed(3);
+                details.netRate = (details.rate.lendingRate - details.rate.interestRate).toFixed(3);
                 denomination.push(details.denomination.toLowerCase());
                 delete details.interestRate;
                 delete portfolio.joinedAt;
@@ -202,9 +223,11 @@ const Portfolio = {
     */
     portfolioTransaction: async (email, poolId) => {
         const now = Date.now();
+        console.log(email)
         const getPortfolios = await Portfolio.getPortfolio(email);
+        console.log(getPortfolios)
         const portfolioList = getPortfolios[0].portfolio;
-        const output = portfolioList.filter(portfolio => portfolio.loanPoolId == poolId);
+        const output = portfolioList.filter(portfolio => portfolio.loanPoolId === poolId);
         const poolDetails = await Portfolio.portfolioDetails(poolId);
         const loanAmount = output[0].amount
         const investPortion = loanAmount / poolDetails[0].loanAmount;
@@ -219,15 +242,15 @@ const Portfolio = {
                 scheduleStatus = schedule[num].status;
 
                 // Identify each of the special transaction status such as paid, late and defaulted
-                if ((Date.now() >= schedule[num].repaymentDate) && scheduleStatus == "paid") {
+                if ((Date.now() >= schedule[num].repaymentDate) && scheduleStatus === "paid") {
                     earnedInterest += (schedule[num].interestPayment) * investPortion
                 };
 
-                if (scheduleStatus == 'late') {
+                if (scheduleStatus === 'late') {
                     status = "Late"
                 };
 
-                if (scheduleStatus == "defaulted") {
+                if (scheduleStatus === "defaulted") {
                     status = "Defaulted"
                 };
 
@@ -257,8 +280,11 @@ const Portfolio = {
         } finally {
             client.close()
         }
-    }
+    },
 }
 
 
-module.exports = Portfolio
+module.exports = {
+    connectToCollection, 
+    Portfolio
+}
