@@ -1,9 +1,26 @@
 require('dotenv').config();
 
 const { MongoClient } = require('mongodb');
+const mongoose = require("mongoose");
+
 const CONNECTION_URL = process.env.CONNECTION_URL;
 const DATABASE_NAME = 'PeerHive';
 
+// Initialized Mongoose Database connection
+// Return: Mongoose Coonnection
+async function mongooseConnection() {
+    try {
+        await mongoose.connect(CONNECTION_URL, { 
+            useNewUrlParser: true,
+            dbName: DATABASE_NAME
+        });
+        console.log("Mongoose Connected")
+        return mongoose.connection
+
+    } catch (error) {
+        console.error('Error connecting via Mongoose', error);
+    }
+}
 
 // Initialized Database connection to MongoDB
 // Return: Client: client handler
@@ -46,4 +63,8 @@ async function databaseQuery(col) {
 
 
 
-module.exports = { databaseConnection ,databaseQuery }
+module.exports = { 
+    databaseConnection,
+    databaseQuery,
+    mongooseConnection
+}

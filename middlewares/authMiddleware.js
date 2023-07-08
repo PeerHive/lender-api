@@ -20,7 +20,7 @@ const authenticateSessions = async (req, res, next) => {
   }
   else {
     const payload = await sessions.getSession(sessionId);
-    if (payload.status == "active") {
+    if (payload.status === "active") {
       console.log("valid session ID");
       next()
     }
@@ -46,7 +46,7 @@ const api_auth = async (req, res, next) => {
     const collection = await database.collection('User');
     const account = await collection.find({user: publicKey}).toArray();
     const key = account[0].key;
-    const apiAuth = jwt.verify(key, API_ENCODING) == api_key
+    const apiAuth = jwt.verify(key, API_ENCODING) === api_key
     if (apiAuth) {
       console.log("API Key Authenticated");
       next();
