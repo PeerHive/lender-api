@@ -1,12 +1,12 @@
-const { connect } = require('mongo');
-const moment = require('moment')
 const CoinGecko = require('coingecko-api');
 const _ = require('underscore');
-
+const mongoose = require('mongoose');
 const database = require('../models/databases');
 const User = require('../models/portfolioModels');
 
-const coinGeckoClient = new CoinGecko(); 
+const coinGeckoClient = new CoinGecko();
+
+const mongouri = process.env.CONNECTION_URL;
 
 /*
  Connect to the MongoDB 
@@ -281,7 +281,55 @@ const Portfolio = {
             client.close()
         }
     },
+
+    /* 
+    POST request to participate loanPool
+    Param emailId: string, unique email of each user
+    Param poolId: string, unique portfolio for each pool
+    Param borrowAmount: number, amount to invest into the loan pool
+    Return users: JSON, status of the loanPool participation.
+    */
+    portfolioParticipate: async (emailId, poolId, borrowAmount) => {
+        const { client, collection } = await connectToCollection('lenders');
+        const emailQuery = {email: emailId}
+                  
+        try {
+            // Get the particular of the user data to be parse into portfolioDet
+            var user = await collection.find(emailQuery).project({
+                _id: 0,
+                lenderId: 1,
+                wallets: 1
+            }).toArray();
+            user = user[0]
+            const userQuery = { lenderId: user.lenderId };
+            const wallet = user.wallets[0].walletId
+
+            // Stringfy the portfolioDet with user particular details and the wallet
+            var portfolioDet = {
+              amount: borrowAmount,
+              loanPoolId: poolId,
+              walletAddress: wallet,
+              joinedAt: new Date()
+            };
+
+            // Connect to the mongodb server after that find the user details and update their respective portfolio   
+            await mongoose.connect(mongouri, {useNewUrlParser: true, useUnifiedTopology: true, dbName: "PeerHive"});
+            const users = await User.findOneAndUpdate(userQuery, { $push: { portfolio: portfolioDet } }, { new: true });
+            await users.save().then(func => {
+                mongoose.connection.close()
+            });
+            portfolioDet.status =  "Success"
+            
+        } catch (error) {
+            console.error('Error in overall calculation:', error);
+            portfolioDet.status = "Fail"
+        } finally {
+            client.close()
+            return portfolioDet
+        }
+    }
 }
+
 
 
 module.exports = {

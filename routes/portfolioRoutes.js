@@ -6,23 +6,30 @@ const router = express.Router();
 
 /* 
 Route: GET /user/landing
-Decription: Mainpage 
+Decription: get the entire portfolio of the user 
 */
 router.get('/portfolio', auth.authenticateSessions, portfolioControllers.portfolioDetails);
 
 /* 
 Route: GET /user/header
-Decription: Mainpage 
+Decription: retrieve all the portfolio of the user with header (Front Page) 
 */
 router.get('/header', auth.authenticateSessions, portfolioControllers.portfolioHeader);
 
 /*
 Route: GET /user/portfolioTrxn
-PARAM: poolId
-Decription: Mainpage
+Query: poolId
+Decription: Get the specific portfolio potential return and transaction deadline
 */
 router.get('/portfolioTrxn', auth.authenticateSessions, portfolioControllers.portfolioTrxn);
 
-router.post('/joinPool', portfolioControllers.portfolioJoin)
+
+/*
+Route: POST /user/portfolioTrxn
+Query: poolId
+Query: Amount
+Decription: to join a pool in the loanPool
+*/
+router.post('/joinPool', auth.authenticateSessions, portfolioControllers.portfolioJoin)
 
 module.exports = router;

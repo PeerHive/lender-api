@@ -6,17 +6,10 @@ const mainpageRoute = require('./routes/mainpageRoutes');
 const portfolioRoute = require('./routes/portfolioRoutes');
 const auth = require('./middlewares/authMiddleware');
 
-mongoose
-  .connect(process.env.CONNECTION_URL, {
-    useNewUrlParser: true,
-    dbName: "PeerHive"
-  })
-  .then(() => {
-    console.log('MongoDB connected!!')
-  })
-  .catch(err => {
-    console.log('Failed to connect to MongoDB', err)
-  })
+
+const mongo_Connection = process.env.CONNECTION_URL;
+
+// Connect to the MongoDB database
 
 const app = express();
 const port = 5001; // Open port 5001 from the localhost
@@ -42,3 +35,4 @@ app.listen(port, (error) => {
 app.get('/hello_world', (req,res)=>{
     res.send('Hello World, welcome to PeerHive app');
 });
+

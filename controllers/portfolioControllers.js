@@ -17,7 +17,7 @@ const portfolioDetails = async(req, res) => {
         else {
             const portfolioList = await portfoliosLogics.find(emailId);
                 if (!portfolioList) {
-                    res.status(404).send({ message: `email with ${emailId} not found`});
+                    res.status(404).JSON({ message: `email with ${emailId} not found`});
                 }
                 else {
                     const portfolios = await portfoliosLogics.Portfolio.portfolioDatas(emailId); // Get the portfolio datas of a specific user
@@ -73,7 +73,8 @@ const portfolioTrxn = async(req, res) => {
             res.status(404).send({message: 'PoolId is not provided'});
         }
         else {
-            const transactionArray = await portfoliosLogics.Portfolio.portfolioTransaction(emailId, poolId); // Get the latest portfolio transaction for each specific user and each pool
+            // Get the latest portfolio transaction for each specific user and each pool
+            const transactionArray = await portfoliosLogics.Portfolio.portfolioTransaction(emailId, poolId); 
             if (!transactionArray) {
                 res.status(404).send({message: 'transaction Not Found'});
             }
@@ -88,34 +89,58 @@ const portfolioTrxn = async(req, res) => {
     }
 };
 
+// API Endpoint for user to join the pool
+// Return: Nil
 const portfolioJoin = async (req, res) => {
-    const userId = "lender_000001";
-    const emailId = "vincent.yeo96@gmail.com";
-    const walletsAddress = "1";
-    const poolId = "pool_000002";
-    const borrowAmount = 10;
+
+    // Getting the specific of the loanPool
     const { client, collection } = await portfoliosLogics.connectToCollection('loanPool');
+
+    // Using the sessionId of the user to obtain the email
+    const userId = (await sessions.getSession(req.header("session"))).userId;
+    const emailId = (await users.getUser(userId)).emailAddresses[0].emailAddress;
+
+    // retrieve poolId and the total amount to be loaned
+    const poolId = req.query.poolId;
+    const borrowAmount = req.query.amount;
     const loanQuery = {"loanPoolId" : poolId};
+
     try {
         console.log("Runing Pool Participation operations");
+        
+        // Check for the array of the loanPool
         const validity = await collection.find(loanQuery).toArray();
+        const loanAmount = validity[0].balanceAmount;
+        if (validity.status != "Fund Raising") {
+            res.status(401).json({message: 'Loan Pool is not fund raising'})
+        }
         if (!userId) {
-            res.status(401).send({message: 'Session is not provided'});
+            res.status(401).json({message: 'Session is not provided'});
+        }
+        if (!poolId) {
+            res.status(401).json({message: 'PoolId is not provided'});
         }
         if (!emailId) {
-            res.status(401).send({message: 'PoolId is not provided'});
+            res.status(401).json({message: 'emailId is not provided'});
         }
         if (validity == 0) {
-            res.status(400).send({message: 'Invalid poolId'});
+            res.status(400).json({message: 'Invalid poolId'});
+        }
+        if (borrowAmount > loanAmount) {
+            res.status(401).json({message: 'Loan Amount Exceed Alloted Amount'})
         }
         else {
-            const joinPool = await portfoliosLogics.Portfolio.portfolioParticipate(userId, walletsAddress, poolId, borrowAmount); // Get the latest portfolio transaction for each specific user and each pool
-            if (!joinPool) {
-                res.status(500).send({message: 'Bad Request'});
-            }
-            else {
-                res.status(200).send(joinPool)
-            }
+            // Retrieve the status of joining the pool
+            portfoliosLogics.Portfolio.portfolioParticipate(emailId, poolId, borrowAmount).then(
+                pool => {
+                    if (!pool) {
+                        res.status(500).json({message: 'Bad Request'});
+                    }
+                    else {
+                        res.status(200).json(pool)
+                    }
+                }
+            ); // Get the latest portfolio transaction for each specific user and each pool
         }
     } catch (error) {
         console.error('Error in joining portfolio', error);
