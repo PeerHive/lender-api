@@ -21,7 +21,6 @@ const authenticateSessions = async (req, res, next) => {
   else {
     const payload = await sessions.getSession(sessionId);
     if (payload.status === "active") {
-      console.log("valid session ID");
       next()
     }
     else {
@@ -48,7 +47,6 @@ const api_auth = async (req, res, next) => {
     const key = account[0].key;
     const apiAuth = jwt.verify(key, API_ENCODING) === api_key
     if (apiAuth) {
-      console.log("API Key Authenticated");
       next();
     } else {
       res.status(403).send({error: {code: 403, message: "API Not Authenticated"}})

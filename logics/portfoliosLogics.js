@@ -3,6 +3,7 @@ const _ = require('underscore');
 const mongoose = require('mongoose');
 const database = require('../models/databases');
 const User = require('../models/portfolioModels');
+const moment = require('moment');
 
 const coinGeckoClient = new CoinGecko();
 
@@ -158,7 +159,6 @@ const Portfolio = {
                 var portfolio of getPortfolios[0].portfolio) {
                 var details = await Portfolio.portfolioDetails(portfolio.loanPoolId);
                 details = details[0];
-                console.log(details)
                 // Calculate the net rate received by lender
                 details.netRate = (details.rate.lendingRate - details.rate.interestRate).toFixed(3);
                 denomination.push(details.denomination.toLowerCase());
@@ -189,12 +189,15 @@ const Portfolio = {
     Return portfolioHeader: JSON
     */
     overrallPortfolio: async (email) => {
+        const startDate = moment()
         const portfolioList = await Portfolio.portfolioDatas(email);
         let totalValue = 0;
         let averageInterest = 0;
+        const now = moment()
+        console.log(moment.duration(now.diff(startDate)).asSeconds())
 
         // To calculate the latest valuation of each loan pool with each specific ticker
-        try { 
+        try {
             for (const obj of portfolioList) {
                 totalValue += obj.value;
             };
@@ -207,6 +210,7 @@ const Portfolio = {
                 avgRate: averageInterest,
                 portfolio: portfolioList
             }
+
             return portfolioHeader;
 
         } catch (error) {
@@ -223,9 +227,7 @@ const Portfolio = {
     */
     portfolioTransaction: async (email, poolId) => {
         const now = Date.now();
-        console.log(email)
         const getPortfolios = await Portfolio.getPortfolio(email);
-        console.log(getPortfolios)
         const portfolioList = getPortfolios[0].portfolio;
         const output = portfolioList.filter(portfolio => portfolio.loanPoolId === poolId);
         const poolDetails = await Portfolio.portfolioDetails(poolId);
