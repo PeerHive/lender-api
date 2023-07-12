@@ -12,7 +12,7 @@ const mongo_Connection = process.env.CONNECTION_URL;
 // Connect to the MongoDB database
 
 const app = express();
-const port = 80; // Open port 5001 from the localhost
+const port = 8080; // Open port 8080 
 
 // JSON Encoding allowing JSON Body to be parsed
 app.use(BodyParser.json());
