@@ -8,7 +8,7 @@ const auth = require('./middlewares/authMiddleware');
 
 
 const mongo_Connection = process.env.CONNECTION_URL;
-consol.log(mongo_Connection)
+console.log(mongo_Connection)
 
 // Connect to the MongoDB database
 
