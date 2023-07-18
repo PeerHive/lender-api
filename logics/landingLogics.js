@@ -67,17 +67,31 @@ const Mainpage = {
                 {
                     $group: {
                         _id: null,
-                        activeAmounts: { $sum: '$loanAmount' },
-                        avgInterestRate: { $avg: '$rate.lendingRate' },
+                        activeAmounts: { $sum: 
+                            { 
+                            $subtract: [ '$loanAmount', '$balanceAmount']
+                        }
+                    },
+                        avgInterestRate: { $sum: 
+                            { 
+                            $multiply: ['$rate.lendingRate', {$sum: { $subtract: ['$loanAmount', '$balanceAmount']}}]
+                        }
+                    },
                         countPool: { $count: {}}
                     }
                 }
             ];
 
             // Obtain the database of the query return in Array
-            const header = await collection.aggregate(query).project({
+            let header = await collection.aggregate(query).project({
                 _id: 0
             }).toArray();
+            header = header[0]
+            header = {
+                activeAmounts: header.activeAmounts,
+                avgInterestRate: (header.avgInterestRate/header.activeAmounts),
+                countPool: header.countPool
+            }
 
             // This will find all the collection in the database
             const loanPool = await collection.find({}).project(
@@ -100,10 +114,9 @@ const Mainpage = {
 
             // JSON File initialization
             mainpageList = {
-                "header": header[0],
+                "header": header,
                 "loansList": loanPool
             };
-
             return mainpageList ;
 
         } catch (error) {
