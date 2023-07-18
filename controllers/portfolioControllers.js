@@ -15,7 +15,7 @@ const portfolioDetails = async(req, res) => {
             res.status(400).send({message: 'Session is not provided'});
         }
         else {
-            const portfolioList = await portfoliosLogics.find(emailId);
+            const portfolioList = await portfoliosLogics.Portfolio.find(emailId);
                 if (!portfolioList) {
                     res.status(404).JSON({ message: `email with ${emailId} not found`});
                 }

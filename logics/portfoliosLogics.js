@@ -189,12 +189,9 @@ const Portfolio = {
     Return portfolioHeader: JSON
     */
     overrallPortfolio: async (email) => {
-        const startDate = moment()
         const portfolioList = await Portfolio.portfolioDatas(email);
         let totalValue = 0;
         let averageInterest = 0;
-        const now = moment()
-        console.log(moment.duration(now.diff(startDate)).asSeconds())
 
         // To calculate the latest valuation of each loan pool with each specific ticker
         try {
@@ -269,6 +266,7 @@ const Portfolio = {
             
             // Initialized JSON with payment array and headers
             const investments = {
+                poolId: poolId,
                 investedAmount: loanAmount,
                 paidInterest: earnedInterest,
                 loanStatus: status,
@@ -283,6 +281,7 @@ const Portfolio = {
             client.close()
         }
     },
+    
 
     /* 
     POST request to participate loanPool

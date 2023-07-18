@@ -1,14 +1,10 @@
 const express = require('express');
 const BodyParser = require('body-parser');
 const cors = require('cors');
-const mongoose = require("mongoose");
 const mainpageRoute = require('./routes/mainpageRoutes');
 const portfolioRoute = require('./routes/portfolioRoutes');
 const auth = require('./middlewares/authMiddleware');
 
-
-const mongo_Connection = process.env.CONNECTION_URL;
-console.log(mongo_Connection)
 
 // Connect to the MongoDB database
 
