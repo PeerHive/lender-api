@@ -40,8 +40,6 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
-      - name: Azure Login
-        uses: Azure/login@v1
           
       - name: Download artifact from build job
         uses: actions/download-artifact@v2
@@ -54,5 +52,5 @@ jobs:
         with:
           app-name: 'peerhivelenderapi'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_0121CA6608B441B1A6BAF376404C1CF0 }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
           package: .
