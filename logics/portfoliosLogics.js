@@ -166,12 +166,13 @@ const Portfolio = {
                 delete portfolio.joinedAt;
                 portfolio.details = details;
             };
-            const priceList = await price(denomination);
+            const priceList = await price(["usdc"]);
 
             // Puch portfolio to portflioList as return and multiply with filtered price
             portfolioList = getPortfolios[0].portfolio;
             for (detail of portfolioList) {
-                const filteredPrice = _.where(priceList, {symbol: detail.details.denomination.toLowerCase()});
+                const filteredPrice = _.where(priceList, {symbol: 'usdc'});
+                console.log(filteredPrice)
                 detail.value = detail.amount * filteredPrice[0].price
             };
 
@@ -282,6 +283,25 @@ const Portfolio = {
         }
     },
     
+    portfolioSmartContract: async(poolId) => {
+        const { client, collection } = await connectToCollection('SmartContract');
+        const poolIdQuery = { loanPoolId: poolId }
+
+        try {
+            var smartContract = await collection.find(poolIdQuery).project({
+                _id: 0,
+                contractAddress: 1,
+                contractStatus: 1
+            }).toArray();
+            smartContract = smartContract[0]
+            return smartContract
+        } catch (error) {
+            console.error("Error in obtaining smart contract:", error);
+        
+        } finally {
+            client.close()
+        }
+    },
 
     updateBalance: async (poolId, amount, balanceAmount) => {
         const { client, collection } = await connectToCollection("loanPool");
@@ -349,27 +369,7 @@ const Portfolio = {
             client.close()
             return portfolioDet
         }
-    },
-    
-    portfolioSmartContract: async(poolId) => {
-        const { client, collection } = await connectToCollection('SmartContract');
-        const poolIdQuery = { loanPoolId: poolId }
-
-        try {
-            var smartContract = await collection.find(poolIdQuery).project({
-                _id: 0,
-                contractAddress: 1,
-                contractStatus: 1
-            }).toArray();
-            smartContract = smartContract[0]
-            return smartContract
-        } catch (error) {
-            console.error("Error in obtaining smart contract:", error);
-        
-        } finally {
-            client.close()
-        }
-    },
+    }
 }
 
 
