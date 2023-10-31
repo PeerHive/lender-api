@@ -69,7 +69,7 @@ const portfolioTrxn = async(req, res) => {
         if (!userId) {
             res.status(400).send({message: 'Session is not provided'});
         }
-        if (!poolId) {
+        else if (!poolId) {
             res.status(404).send({message: 'PoolId is not provided'});
         }
         else {
@@ -114,19 +114,19 @@ const portfolioJoin = async (req, res) => {
         if (validity.status != "Fund Raising") {
             res.status(401).json({message: 'Loan Pool is not fund raising'})
         }
-        if (!userId) {
+        else if (!userId) {
             res.status(401).json({message: 'Session is not provided'});
         }
-        if (!poolId) {
+        else if (!poolId) {
             res.status(401).json({message: 'PoolId is not provided'});
         }
-        if (!emailId) {
+        else if (!emailId) {
             res.status(401).json({message: 'emailId is not provided'});
         }
-        if (validity == 0) {
+        else if (validity == 0) {
             res.status(400).json({message: 'Invalid poolId'});
         }
-        if (borrowAmount > loanAmount) {
+        else if (borrowAmount > loanAmount) {
             res.status(401).json({message: 'Loan Amount Exceed Alloted Amount'})
         }
         else {
