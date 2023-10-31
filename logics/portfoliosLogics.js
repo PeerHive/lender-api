@@ -283,6 +283,21 @@ const Portfolio = {
     },
     
 
+    updateBalance: async (poolId, amount, balanceAmount) => {
+        const { client, collection } = await connectToCollection("loanPool");
+        const poolQuery = {loanPoolId: poolId};
+        const leftover = balanceAmount - amount
+        try {
+            await collection.findOneAndUpdate(poolQuery, { $set: {
+                balanceAmount: leftover}
+            }, { new: true})
+        } catch (error) {
+            console.error('Error in overall calculation:', error);
+        } finally {
+            client.close()
+        }
+    },
+
     /* 
     POST request to participate loanPool
     Param emailId: string, unique email of each user
@@ -290,7 +305,7 @@ const Portfolio = {
     Param borrowAmount: number, amount to invest into the loan pool
     Return users: JSON, status of the loanPool participation.
     */
-    portfolioParticipate: async (emailId, poolId, borrowAmount) => {
+    portfolioParticipate: async (emailId, poolId, borrowAmount, balanceAmount) => {
         const { client, collection } = await connectToCollection('lenders');
         const emailQuery = {email: emailId}
                   
@@ -303,7 +318,8 @@ const Portfolio = {
             }).toArray();
             user = user[0]
             const userQuery = { lenderId: user.lenderId };
-            const wallet = user.wallets[0].walletId
+            const wallet = user.wallets[0].walletID
+
 
             // Stringfy the portfolioDet with user particular details and the wallet
             var portfolioDet = {
@@ -312,18 +328,23 @@ const Portfolio = {
               walletAddress: wallet,
               joinedAt: new Date()
             };
+            console.log(portfolioDet)
 
             // Connect to the mongodb server after that find the user details and update their respective portfolio   
             await mongoose.connect(mongouri, {useNewUrlParser: true, useUnifiedTopology: true, dbName: "PeerHive"});
-            const users = await User.findOneAndUpdate(userQuery, { $push: { portfolio: portfolioDet } }, { new: true });
+            const users = await User.findOneAndUpdate(userQuery, { 
+                $push: { portfolio: portfolioDet } }, { 
+                    new: true });
             await users.save().then(func => {
                 mongoose.connection.close()
             });
+            Portfolio.updateBalance(poolId, borrowAmount, balanceAmount)
             portfolioDet.status =  "Success"
             
         } catch (error) {
             console.error('Error in overall calculation:', error);
             portfolioDet.status = "Fail"
+            
         } finally {
             client.close()
             return portfolioDet
