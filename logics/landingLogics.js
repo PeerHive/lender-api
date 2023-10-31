@@ -59,6 +59,7 @@ const Mainpage = {
                 {
                     $match: {
                         $or: [
+                            { Status: 'Open' },
                             { Status: 'Active' },
                             { Status: 'Completed' }
                         ]
