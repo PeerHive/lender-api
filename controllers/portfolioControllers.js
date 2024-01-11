@@ -111,7 +111,7 @@ const portfolioJoin = async (req, res) => {
         // Check for the array of the loanPool
         const validity = await collection.find(loanQuery).toArray();
         const loanAmount = validity[0].balanceAmount;
-        if (validity.Status != "Open") {
+        if (validity.Status !== "Open") {
             res.status(401).json({message: 'Loan Pool is not fund raising'})
         }
         else if (!userId) {
