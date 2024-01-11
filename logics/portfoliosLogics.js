@@ -287,9 +287,20 @@ const Portfolio = {
         const { client, collection } = await connectToCollection("loanPool");
         const poolQuery = {loanPoolId: poolId};
         const leftover = balanceAmount - amount
+        let body = {}
         try {
-            await collection.findOneAndUpdate(poolQuery, { $set: {
-                balanceAmount: leftover}
+            if( leftover > 0 ) {
+                body = {
+                    balanceAmount: leftover
+                }
+            }
+            else {
+                body = {
+                    balanceAmount: leftover,
+                    Status: "Active"
+                }
+            }
+            await collection.findOneAndUpdate(poolQuery, { $set: body
             }, { new: true})
         } catch (error) {
             console.error('Error in overall calculation:', error);
