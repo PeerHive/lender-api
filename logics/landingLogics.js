@@ -154,7 +154,8 @@ const Mainpage = {
                 loanType: 1,
                 paymentFreq: 1,
                 repaymentStructure:1, 
-                loanName: 1
+                loanName: 1,
+                smartContract: 1
             }).toArray();
             loanPool = loanPool[0];
             loanPool['duration'] = calculateMonths(loanPool.startDate, loanPool.endDate); // Calculation of number of months in loan pool
