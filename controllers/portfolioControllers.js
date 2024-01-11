@@ -114,24 +114,24 @@ const portfolioJoin = async (req, res) => {
         if (validity[0].Status !== "Open") {
             res.status(401).json({message: 'Loan Pool is not fund raising'})
         }
-        else if (!userId) {
+        if (!userId) {
             res.status(401).json({message: 'Session is not provided'});
         }
-        else if (!poolId) {
+        if (!poolId) {
             res.status(401).json({message: 'PoolId is not provided'});
         }
-        else if (!emailId) {
+        if (!emailId) {
             res.status(401).json({message: 'emailId is not provided'});
         }
-        else if (validity == 0) {
+        if (validity == 0) {
             res.status(400).json({message: 'Invalid poolId'});
         }
-        else if (borrowAmount > loanAmount) {
+        if (borrowAmount > loanAmount) {
             res.status(401).json({message: 'Loan Amount Exceed Alloted Amount'})
         }
         else {
             // Retrieve the status of joining the pool
-            portfoliosLogics.Portfolio.portfolioParticipate(emailId, poolId, borrowAmount).then(
+            portfoliosLogics.Portfolio.portfolioParticipate(emailId, poolId, borrowAmount, loanAmount).then(
                 pool => {
                     if (!pool) {
                         res.status(500).json({message: 'Bad Request'});

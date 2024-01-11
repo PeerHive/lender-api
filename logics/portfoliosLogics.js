@@ -286,7 +286,8 @@ const Portfolio = {
     updateBalance: async (poolId, amount, balanceAmount) => {
         const { client, collection } = await connectToCollection("loanPool");
         const poolQuery = {loanPoolId: poolId};
-        const leftover = balanceAmount - amount
+        const leftover = balanceAmount - amount;
+        console.log(balanceAmount, amount)
         let body = {}
         try {
             if( leftover > 0 ) {
