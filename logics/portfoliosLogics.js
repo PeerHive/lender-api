@@ -282,26 +282,6 @@ const Portfolio = {
             client.close()
         }
     },
-    
-    portfolioSmartContract: async(poolId) => {
-        const { client, collection } = await connectToCollection('SmartContract');
-        const poolIdQuery = { loanPoolId: poolId }
-
-        try {
-            var smartContract = await collection.find(poolIdQuery).project({
-                _id: 0,
-                contractAddress: 1,
-                contractStatus: 1
-            }).toArray();
-            smartContract = smartContract[0]
-            return smartContract
-        } catch (error) {
-            console.error("Error in obtaining smart contract:", error);
-        
-        } finally {
-            client.close()
-        }
-    },
 
     updateBalance: async (poolId, amount, balanceAmount) => {
         const { client, collection } = await connectToCollection("loanPool");

@@ -38,12 +38,10 @@ const loanDetails = async(req, res) => {
                 const loanPool = await mainopageDb.pool(loanId); // Get the loan pool of a specific loanId
                 const schedule = await mainopageDb.schedule(loanId); // Get the loan schedule of a specific loanId
                 const borrower = await mainopageDb.borrower(loanPool.borrower); // Get the borrower's detail based on the borrower detail
-                const smartContract = await portfolioLogics.Portfolio.portfolioSmartContract(loanId); // Get the smart contract details
         
                 const completeData = {
                 loanData: loanPool,
                 loanSchedule: schedule,
-                smartContract: smartContract
                 };
       
                 completeData.loanData.borrower = borrower;
