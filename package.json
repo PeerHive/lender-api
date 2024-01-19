@@ -23,7 +23,8 @@
     "moment": "^2.29.4",
     "mongodb": "^5.9.1",
     "mongoose": "^7.6.4",
-    "underscore": "^1.13.6"
+    "underscore": "^1.13.6",
+    "web3": "^4.4.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
