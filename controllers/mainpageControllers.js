@@ -1,5 +1,5 @@
 const mainopageDb = require('../logics/landingLogics');
-const portfolioLogics = require('../logics/portfoliosLogics');
+const PolygonMiddleware = require('../middlewares/polygonScan');
 
 // Main Page 
 // return: nil
@@ -38,14 +38,16 @@ const loanDetails = async(req, res) => {
                 const loanPool = await mainopageDb.pool(loanId); // Get the loan pool of a specific loanId
                 const schedule = await mainopageDb.schedule(loanId); // Get the loan schedule of a specific loanId
                 const borrower = await mainopageDb.borrower(loanPool.borrower); // Get the borrower's detail based on the borrower detail
-        
+    
                 const completeData = {
-                loanData: loanPool,
-                loanSchedule: schedule,
-                };
-      
+                loanData: await loanPool,
+                loanSchedule: await mainopageDb.schedule(loanId),
+                transaction: await PolygonMiddleware.logs.getContracts(loanPool.smartContract.contractAddress)
+                }
+                
                 completeData.loanData.borrower = borrower;
-                res.status(200).send(completeData);
+                res.status(200).send(completeData); 
+                
             }
           }
         } catch (error) {

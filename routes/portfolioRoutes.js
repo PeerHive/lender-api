@@ -21,7 +21,7 @@ Route: GET /user/portfolioTrxn
 Query: poolId
 Decription: Get the specific portfolio potential return and transaction deadline
 */
-router.get('/portfolioTrxn', auth.authenticateSessions, portfolioControllers.portfolioTrxn);
+router.get('/pool', auth.authenticateSessions, portfolioControllers.portfolioTrxn);
 
 
 /*

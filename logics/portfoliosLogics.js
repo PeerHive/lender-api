@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const database = require('../models/databases');
 const User = require('../models/portfolioModels');
 const moment = require('moment');
+const PolygonMiddleware = require('../middlewares/polygonScan');
+
 
 const coinGeckoClient = new CoinGecko();
 
@@ -118,11 +120,11 @@ const Portfolio = {
     Param portfolioId: string, unique for each loan pool
     Return details: JSON
     */
-    portfolioDetails: async (portfolioId) => {
+    portfolioDetails: async (poolId) => {
         const { client, collection } = await connectToCollection('loanPool');
         try {
             // Find the collection for the portfolioId
-            var details = await collection.find({ loanPoolId: portfolioId}).project (
+            var details = await collection.find({ loanPoolId: poolId}).project (
                 {
                     _id: 0,
                     interestRate: 1,
@@ -132,9 +134,11 @@ const Portfolio = {
                     repaymentStructure:1,
                     loanName: 1,
                     loanAmount: 1,
-                    rate: 1
+                    rate: 1,
+                    smartContract: 1
                 }
             ).toArray();
+            details.transaction = await PolygonMiddleware.logs.getContracts(details[0].smartContract.contractAddress)
             return details
 
         } catch (error) {
@@ -172,7 +176,6 @@ const Portfolio = {
             portfolioList = getPortfolios[0].portfolio;
             for (detail of portfolioList) {
                 const filteredPrice = _.where(priceList, {symbol: 'usdc'});
-                console.log(filteredPrice)
                 detail.value = detail.amount * filteredPrice[0].price
             };
 
@@ -229,6 +232,9 @@ const Portfolio = {
         const portfolioList = getPortfolios[0].portfolio;
         const output = portfolioList.filter(portfolio => portfolio.loanPoolId === poolId);
         const poolDetails = await Portfolio.portfolioDetails(poolId);
+        if (!output[0]) {
+            return "Invalid"
+        }
         const loanAmount = output[0].amount
         const investPortion = loanAmount / poolDetails[0].loanAmount;
         const { client, collection } = await connectToCollection('paymentSchedule');
@@ -256,24 +262,26 @@ const Portfolio = {
 
                 // Initialized payment set and push to payment array
                 var paymentSet = {
-                        'repaymentDate': schedule[num].repaymentDate,
+                        'repaymentDate': schedule[num].date,
                         'status': scheduleStatus,
-                        'interestPayment': ((schedule[num].interestPayment) * investPortion).toFixed(3),
-                        'principalPayment': ((schedule[num].principalPayment) * investPortion).toFixed(3)
+                        'earning': ((schedule[num].repaymentAmount - schedule[num].fee) * investPortion).toFixed(3),
                     };
                     
                 paymentArray.push(paymentSet)
                 };
             
             // Initialized JSON with payment array and headers
-            const investments = {
-                poolId: poolId,
+            const userArray = {
                 investedAmount: loanAmount,
                 paidInterest: earnedInterest,
                 loanStatus: status,
-                transactions : paymentArray
+                schedule : paymentArray,          
             }
-            return investments
+            const payload = {
+                loanDetails : poolDetails,
+                userInvestment : userArray
+            }
+            return payload
 
         } catch (error) {
             console.error('Error in overall calculation:', error);
@@ -282,12 +290,33 @@ const Portfolio = {
             client.close()
         }
     },
+    
+    /* portfolioSmartContract: async(poolId) => {
+        const { client, collection } = await connectToCollection('SmartContract');
+        const poolIdQuery = { loanPoolId: poolId }
+
+        try {
+            var smartContract = await collection.find(poolIdQuery).project({
+                _id: 0,
+                contractAddress: 1,
+                contractStatus: 1
+            }).toArray();
+            smartContract = smartContract[0]
+            return smartContract
+        } catch (error) {
+            console.error("Error in obtaining smart contract:", error);
+        
+        } finally {
+            client.close()
+        }
+    },*/ //{Removed on 10/01/2024 By Vincent for Removing Smart Contract DB}
 
     updateBalance: async (poolId, amount, balanceAmount) => {
         const { client, collection } = await connectToCollection("loanPool");
         const poolQuery = {loanPoolId: poolId};
         const leftover = balanceAmount - amount;
         console.log(balanceAmount, amount)
+
         let body = {}
         try {
             if( leftover > 0 ) {
@@ -340,7 +369,6 @@ const Portfolio = {
               walletAddress: wallet,
               joinedAt: new Date()
             };
-            console.log(portfolioDet)
 
             // Connect to the mongodb server after that find the user details and update their respective portfolio   
             await mongoose.connect(mongouri, {useNewUrlParser: true, useUnifiedTopology: true, dbName: "PeerHive"});
@@ -362,6 +390,8 @@ const Portfolio = {
             return portfolioDet
         }
     }
+
+    
 }
 
 

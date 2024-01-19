@@ -1,5 +1,4 @@
 const portfoliosLogics = require('../logics/portfoliosLogics');
-const authMiddleware = require('../middlewares/authMiddleware');
 const authPkg = require('@clerk/clerk-sdk-node');
 
 const { sessions, users } = authPkg;
@@ -69,14 +68,17 @@ const portfolioTrxn = async(req, res) => {
         if (!userId) {
             res.status(400).send({message: 'Session is not provided'});
         }
-        else if (!poolId) {
-            res.status(404).send({message: 'PoolId is not provided'});
+        if (!poolId) {
+            res.status(400).send({message: 'PoolId is not provided'});
         }
         else {
             // Get the latest portfolio transaction for each specific user and each pool
             const transactionArray = await portfoliosLogics.Portfolio.portfolioTransaction(emailId, poolId); 
             if (!transactionArray) {
                 res.status(404).send({message: 'transaction Not Found'});
+            }
+            else if (transactionArray === "Invalid" ) {
+                res.status(404).send({message: 'Not Invested in this pool'})
             }
             else {
                 res.status(200).send(transactionArray);
@@ -114,19 +116,19 @@ const portfolioJoin = async (req, res) => {
         if (validity[0].Status !== "Open") {
             res.status(401).json({message: 'Loan Pool is not fund raising'})
         }
-        if (!userId) {
+        else if (!userId) {
             res.status(401).json({message: 'Session is not provided'});
         }
-        if (!poolId) {
+        else if (!poolId) {
             res.status(401).json({message: 'PoolId is not provided'});
         }
-        if (!emailId) {
+        else if (!emailId) {
             res.status(401).json({message: 'emailId is not provided'});
         }
-        if (validity == 0) {
+        else if (validity == 0) {
             res.status(400).json({message: 'Invalid poolId'});
         }
-        if (borrowAmount > loanAmount) {
+        else if (borrowAmount > loanAmount) {
             res.status(401).json({message: 'Loan Amount Exceed Alloted Amount'})
         }
         else {
