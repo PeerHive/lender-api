@@ -59,7 +59,6 @@ const Mainpage = {
                 {
                     $match: {
                         $or: [
-                            { Status: 'Open' },
                             { Status: 'Active' },
                             { Status: 'Completed' }
                         ]
@@ -179,16 +178,25 @@ const Mainpage = {
 
         // JSON query of the Param
         poolId = { loanPoolId: poolId };
+        var paymentArray = [];
         try {
             
             // using the query from above and project to the necessary fields
-            let schedule = await collection.find(poolId).project({
+            let obtainedArray = await collection.find(poolId).project({
                 schedule: 1,
-                _id: 0
+                _id: 0 
             }).toArray();
-            schedule = schedule[0];
+            const schedule = obtainedArray[0].schedule
+            for (num in schedule) {
+                var paymentSet = {
+                    'repaymentDate': schedule[num].date,
+                    'repaymentAmount':(schedule[num].repaymentAmount - schedule[num].fee).toFixed(3),
+                    'status': schedule[num].status
+                }
+                paymentArray.push(paymentSet)
+            }
 
-            return schedule;
+            return paymentArray;
 
         } catch (error) {
             console.error('Error in obtaining loan data:', error);
