@@ -36,7 +36,6 @@ const loanDetails = async(req, res) => {
             }
             else {
                 const loanPool = await mainopageDb.pool(loanId); // Get the loan pool of a specific loanId
-                const schedule = await mainopageDb.schedule(loanId); // Get the loan schedule of a specific loanId
                 const borrower = await mainopageDb.borrower(loanPool.borrower); // Get the borrower's detail based on the borrower detail
     
                 const completeData = {
