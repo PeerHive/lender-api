@@ -17,7 +17,7 @@ Decription: retrieve all the portfolio of the user with header (Front Page)
 router.get('/header', auth.authenticateSessions, portfolioControllers.portfolioHeader);
 
 /*
-Route: GET /user/portfolioTrxn
+Route: GET /user/pool
 Query: poolId
 Decription: Get the specific portfolio potential return and transaction deadline
 */

@@ -1,4 +1,5 @@
 const database = require('../models/databases');
+const portfolios = require("./portfoliosLogics");
 
 // Connect to the MongoDB 
 // Param collectionName: string, collection name to connect the database
@@ -60,7 +61,9 @@ const Mainpage = {
                     $match: {
                         $or: [
                             { Status: 'Active' },
-                            { Status: 'Completed' }
+                            { Status: 'Completed' },
+                            { Status: 'Open'},
+                            { Status: 'Closed'}
                         ]
                     }
                 },
@@ -108,9 +111,24 @@ const Mainpage = {
                     loanType: 1,
                     paymentFreq: 1,
                     repaymentStructure:1, 
-                    loanName: 1 
+                    loanName: 1,
+                    borrower: 1,
+                    smartContract: 1
                 }
             ).toArray();
+            const borrower = await Mainpage.borrower(false);
+            const schedule = await Mainpage.paymentSchedules();
+            for (const loan in loanPool) {
+                var borrowerName = borrower.find(r => r.borrowerId === loanPool[loan].borrower);
+                var nextPayment = schedule.find(x => x.loanPoolId === loanPool[loan].loanPoolId).schedule[0];                
+                loanPool[loan].borrower = borrowerName.name;
+                loanPool[loan].upcoming = {
+                    nextCycle : nextPayment.date,
+                    payable : nextPayment.repaymentAmount - nextPayment.fee
+                };
+                loanPool[loan].rate = loanPool[loan].rate.lendingRate - loanPool[loan].rate.interestRate;
+            }
+
 
             // JSON File initialization
             mainpageList = {
@@ -152,11 +170,11 @@ const Mainpage = {
                 borrower: 1,
                 loanType: 1,
                 paymentFreq: 1,
-                repaymentStructure:1, 
                 loanName: 1,
                 smartContract: 1
             }).toArray();
             loanPool = loanPool[0];
+            loanPool['rate'] = loanPool.rate.lendingRate - loanPool.rate.interestRate
             loanPool['duration'] = calculateMonths(loanPool.startDate, loanPool.endDate); // Calculation of number of months in loan pool
             
             return loanPool;
@@ -207,32 +225,71 @@ const Mainpage = {
         }
     },
 
-    // The function to obtain borrower's detail for specific borrowerId
-    // Param borrowerId: str, unique id for all the borrower
-    // Return: JSON, refer to below
-    borrower: async (borrowerId) => {
+    paymentSchedules: async () => {
+        const { client, collection } = await connectToCollection('paymentSchedule');
+
+        try {
+            var details = await collection.find({}).project({
+            _id: 0,
+            loanPoolId: 1,
+            schedule: 1
+            }).toArray();
+
+            return details
+            
+        } catch (error) {
+            console.error('Error in obtaining loan data:', error);
+        }
+    },
+    
+
+    borrowerDetails: async (query) => {
         const { client, collection } = await connectToCollection('borrowers');
         
         // JSON query of the Param
-        poolId = { borrowerId: borrowerId };
         try {
-            let borrower = await collection.find(poolId).project({
+            let borrower = await collection.find(query).project({
                 name: 1,
                 placeOfIncorporation: 1,
                 kyc: 1, 
                 wallets: 1,
+                borrowerId: 1,
                 _id: 0
             }).toArray();
-            borrower = borrower[0];
 
             return borrower;
+
+        } 
+        catch (error) {
+            console.error('Error in obtaining loan data:', error);
+        }
+        finally {
+            // Close the MongoDB connection when done
+            await client.close();
+        }
+    },
+
+    // The function to obtain borrower's detail for specific borrowerId
+    // Param borrowerId: str, unique id for all the borrower
+    // Return: JSON, refer to below
+    borrower: async (borrowerId) => {
+        let borrowerArray = []
+        try {
+            if (!borrowerId) {
+                query = {}
+                borrowerArray = await Mainpage.borrowerDetails(query);
+            }
+            else {
+                query = { borrowerId: borrowerId };
+                borrowerArray = await Mainpage.borrowerDetails(query);
+                borrowerArray = borrowerArray[0]
+
+            }
+            return borrowerArray;
 
         } catch (error) {
             console.error('Error in obtaining loan data:', error);
 
-        } finally {
-            // Close the MongoDB connection when done
-            await client.close();
         }
     }
 };
