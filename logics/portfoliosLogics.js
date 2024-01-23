@@ -143,7 +143,8 @@ const Portfolio = {
                     rate: 1,
                     smartContract: 1,
                     loanPoolId: 1,
-                    balanceAmount: 1
+                    balanceAmount: 1,
+                    borrower:1
                 }
             ).toArray();
             for ( i in details ) {
@@ -201,12 +202,15 @@ const Portfolio = {
         const allPool = await Portfolio.portfolioDetails(false);
         const participatedPool = await Portfolio.aggregated(email);
         const schedule = await Mainpage.paymentSchedules();
+        const borrower = await Mainpage.borrower(false);
         try {
             for ( loan in participatedPool ) {
                 var details = allPool.find(x => x.loanPoolId === participatedPool[loan]._id);
+                var borrowerName = borrower.find(n => n.borrowerId === details.borrower);
                 var nextPayment = schedule.find( s => s.loanPoolId === participatedPool[loan]._id).schedule[0]
                 // Calculate the net rate received by lender
                 details.netRate = (details.rate.lendingRate - details.rate.interestRate);
+                details.borrower = borrowerName.name;
                 details.investedAmount = participatedPool[loan].investedAmount;
                 details.upcoming = {
                     nextCycle: nextPayment.date,
