@@ -1,5 +1,4 @@
 const database = require('../models/databases');
-const portfolios = require("./portfoliosLogics");
 
 // Connect to the MongoDB 
 // Param collectionName: string, collection name to connect the database

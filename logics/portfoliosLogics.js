@@ -3,7 +3,7 @@ const _ = require('underscore');
 const mongoose = require('mongoose');
 const database = require('../models/databases');
 const User = require('../models/portfolioModels');
-const moment = require('moment');
+const Mainpage = require("./landingLogics")
 const PolygonMiddleware = require('../middlewares/polygonScan');
 
 
@@ -122,9 +122,15 @@ const Portfolio = {
     */
     portfolioDetails: async (poolId) => {
         const { client, collection } = await connectToCollection('loanPool');
+        if ( !poolId ) {
+            query = { }
+        }
+        else {
+            query = { loanPoolId: poolId }
+        }
         try {
             // Find the collection for the portfolioId
-            var details = await collection.find({ loanPoolId: poolId}).project (
+            var details = await collection.find(query).project (
                 {
                     _id: 0,
                     interestRate: 1,
@@ -135,10 +141,14 @@ const Portfolio = {
                     loanName: 1,
                     loanAmount: 1,
                     rate: 1,
-                    smartContract: 1
+                    smartContract: 1,
+                    loanPoolId: 1,
+                    balanceAmount: 1
                 }
             ).toArray();
-            details.transaction = await PolygonMiddleware.logs.getContracts(details[0].smartContract.contractAddress)
+            for ( i in details ) {
+                details.transaction = await PolygonMiddleware.logs.getContracts(details[i].smartContract.contractAddress)
+            }
             return details
 
         } catch (error) {
@@ -149,37 +159,87 @@ const Portfolio = {
         }
     },
 
+    aggregated: async(email) => {
+        const { client, collection } = await connectToCollection('lenders');
+        try {
+            const query = [
+                {
+                    $unwind: "$portfolio"
+                },
+                {
+                    $match: {
+                        email: email
+                    }
+                },
+                {
+                    $group: {
+                        _id: '$portfolio.loanPoolId',
+                        investedAmount: { $sum: '$portfolio.amount'},
+                    }
+                }
+            ];
+            const array = await collection.aggregate(query).toArray();
+            return array
+        } catch (e) {
+            console.error('Error in obtaining aggregated portfolio datas:', error);
+        } finally {
+            client.close()
+        }
+    },
+
     /* 
     Get all the portfolio of a specific user and compress portfolio details
     Param email: string, unique email of each user
     Return portfolioList: JSON
     */
     portfolioDatas: async (email) => {
-        const getPortfolios = await Portfolio.getPortfolio(email);
+        const portfolio = {
+            email: email,
+        };
+        const intialPayload = []
         const denomination = []
+        const allPool = await Portfolio.portfolioDetails(false);
+        const participatedPool = await Portfolio.aggregated(email);
+        const schedule = await Mainpage.paymentSchedules();
         try {
-            for(
+            for ( loan in participatedPool ) {
+                var details = allPool.find(x => x.loanPoolId === participatedPool[loan]._id);
+                var nextPayment = schedule.find( s => s.loanPoolId === participatedPool[loan]._id).schedule[0]
+                // Calculate the net rate received by lender
+                details.netRate = (details.rate.lendingRate - details.rate.interestRate);
+                details.investedAmount = participatedPool[loan].investedAmount;
+                details.upcoming = {
+                    nextCycle: nextPayment.date,
+                    payable: (nextPayment.repaymentAmount - nextPayment.fee) * ((details.investedAmount) / (details.loanAmount - details.balanceAmount)),
+                }
+                denomination.push(details.denomination.toLowerCase());
+                delete details.rate
+                delete details.interestRate;
+                intialPayload.push(details)
+            }
+            portfolio.details = intialPayload;
+            /* for(as
                 // Loop through each portfolio
                 var portfolio of getPortfolios[0].portfolio) {
                 var details = await Portfolio.portfolioDetails(portfolio.loanPoolId);
                 details = details[0];
+                console.log({"test": details})
                 // Calculate the net rate received by lender
-                details.netRate = (details.rate.lendingRate - details.rate.interestRate).toFixed(3);
+                details.netRate = (details.rate.lendingRate - details.rate.interestRate);
                 denomination.push(details.denomination.toLowerCase());
                 delete details.interestRate;
                 delete portfolio.joinedAt;
                 portfolio.details = details;
-            };
-            const priceList = await price(["usdc"]);
+            }; */
+            const priceList = await price(denomination);
 
             // Puch portfolio to portflioList as return and multiply with filtered price
-            portfolioList = getPortfolios[0].portfolio;
-            for (detail of portfolioList) {
-                const filteredPrice = _.where(priceList, {symbol: 'usdc'});
-                detail.value = detail.amount * filteredPrice[0].price
+            for (detail of portfolio.details) {
+                const filteredPrice = _.where(priceList, {symbol: detail.denomination.toLowerCase()});
+                detail.value = detail.investedAmount * filteredPrice[0].price
             };
 
-            return portfolioList
+            return portfolio;
 
         } catch (error) {
             console.error('Error in obtaining portfolio datas:', error);
@@ -199,17 +259,17 @@ const Portfolio = {
 
         // To calculate the latest valuation of each loan pool with each specific ticker
         try {
-            for (const obj of portfolioList) {
+            for (const obj of portfolioList.details) {
                 totalValue += obj.value;
             };
-            for ( const obj of portfolioList ) {
+            for ( const obj of portfolioList.details) {
                 var percentage = obj.value / totalValue;
-                averageInterest += obj.details.netRate * percentage;
+                averageInterest += obj.netRate * percentage;
             };
             const portfolioHeader = {
                 overallValue: totalValue,
                 avgRate: averageInterest,
-                portfolio: portfolioList
+                portfolio: portfolioList.details
             }
 
             return portfolioHeader;
