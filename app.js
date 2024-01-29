@@ -20,7 +20,7 @@ app.use(cors())
 
 
 app.use('/main', auth.api_auth, mainpageRoute); // Main sub route API, with API middleware
-app.use('/user', auth.api_auth, portfolioRoute); // Useer sub route API, with API middleware
+app.use('/user', auth.api_auth, portfolioRoute); // User sub route API, with API middleware
 
 
 // Listening and initializing of API at port 5001
