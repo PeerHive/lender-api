@@ -7,16 +7,12 @@ const portfolioSchema = new Schema({
   amount: {
     type: Number,
     default: 0,
-    required: true,
   },
   loanPoolId: {
     type: String,
-    unique: true,
-    required: true,
   },
   walletAddress: {
     type: String,
-    required: true,
   },
   joinedAt: {
     type: Date,
@@ -103,11 +99,9 @@ const lenderProfileSchema = new Schema({
   },
   countryCode: {
     type: String,
-    required: true,
   },
   phoneNumber: {
     type: String,
-    required: true,
   },
   created: {
     type: Date,
@@ -121,6 +115,8 @@ const lenderProfileSchema = new Schema({
   proof: proofSchema,
   kyc: kycSchema,
   wallets: [walletSchema],
+},{
+  versionKey: false
 });
 
 module.exports = mongoose.model("User", lenderProfileSchema, "lenders");

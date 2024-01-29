@@ -112,7 +112,8 @@ const Mainpage = {
                     repaymentStructure:1, 
                     loanName: 1,
                     borrower: 1,
-                    smartContract: 1
+                    smartContract: 1,
+                    metadata: 1
                 }
             ).toArray();
             const borrower = await Mainpage.borrower(false);
@@ -170,7 +171,8 @@ const Mainpage = {
                 loanType: 1,
                 paymentFreq: 1,
                 loanName: 1,
-                smartContract: 1
+                smartContract: 1,
+                metadata: 1
             }).toArray();
             loanPool = loanPool[0];
             loanPool['rate'] = loanPool.rate.lendingRate - loanPool.rate.interestRate
@@ -253,7 +255,8 @@ const Mainpage = {
                 kyc: 1, 
                 wallets: 1,
                 borrowerId: 1,
-                _id: 0
+                _id: 0,
+                metadata: 1
             }).toArray();
 
             return borrower;

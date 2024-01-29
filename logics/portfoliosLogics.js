@@ -2,7 +2,7 @@ const CoinGecko = require('coingecko-api');
 const _ = require('underscore');
 const mongoose = require('mongoose');
 const database = require('../models/databases');
-const User = require('../models/portfolioModels');
+const User = require('../models/lenderModels');
 const Mainpage = require("./landingLogics")
 const PolygonMiddleware = require('../middlewares/polygonScan');
 
@@ -144,7 +144,8 @@ const Portfolio = {
                     smartContract: 1,
                     loanPoolId: 1,
                     balanceAmount: 1,
-                    borrower:1
+                    borrower:1,
+                    metadata: 1
                 }
             ).toArray();
             for ( i in details ) {
