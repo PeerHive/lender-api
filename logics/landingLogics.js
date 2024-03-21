@@ -76,7 +76,11 @@ const Mainpage = {
                     },
                         avgInterestRate: { $sum: 
                             { 
-                            $multiply: ['$rate.lendingRate', {$sum: { $subtract: ['$loanAmount', '$balanceAmount']}}]
+                            $multiply: [{$sum: {
+                                $subtract: [
+                                    '$rate.lendingRate', '$rate.interestRate'
+                                ]
+                            }}, {$sum: { $subtract: ['$loanAmount', '$balanceAmount']}}]
                         }
                     },
                         countPool: { $count: {}}
@@ -126,7 +130,7 @@ const Mainpage = {
                     nextCycle : nextPayment.date,
                     payable : nextPayment.repaymentAmount - nextPayment.fee
                 };
-                loanPool[loan].rate = loanPool[loan].rate.lendingRate - loanPool[loan].rate.interestRate;
+                loanPool[loan].rate = (loanPool[loan].rate.lendingRate - loanPool[loan].rate.interestRate).toFixed(5);
             }
 
 
@@ -175,7 +179,7 @@ const Mainpage = {
                 metadata: 1
             }).toArray();
             loanPool = loanPool[0];
-            loanPool['rate'] = loanPool.rate.lendingRate - loanPool.rate.interestRate
+            loanPool['rate'] = (loanPool.rate.lendingRate - loanPool.rate.interestRate).toFixed(5)
             loanPool['duration'] = calculateMonths(loanPool.startDate, loanPool.endDate); // Calculation of number of months in loan pool
             
             return loanPool;
