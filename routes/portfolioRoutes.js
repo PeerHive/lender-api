@@ -36,7 +36,7 @@ router.get('/pool', auth.authenticateSessions, portfolioControllers.portfolioTrx
 
 
 /*
-Route: POST /user/portfolioTrxn
+Route: POST /user/joinPool
 Query: poolId
 Query: Amount
 Decription: to join a pool in the loanPool

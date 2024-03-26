@@ -424,14 +424,12 @@ const Portfolio = {
             }).toArray();
             user = user[0]
             const userQuery = { lenderId: user.lenderId };
-            const wallet = user.wallets[0].walletID
 
 
             // Stringfy the portfolioDet with user particular details and the wallet
             var portfolioDet = {
               amount: borrowAmount,
               loanPoolId: poolId,
-              walletAddress: wallet,
               joinedAt: new Date()
             };
 
